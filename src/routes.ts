@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { randomUUID } from "crypto";
 import { db, queries, type Task } from "./db.js";
+import { sendReport } from "./mailer.js";
 
 const VALID_STATUSES   = ["pending", "in_progress", "done", "blocked"] as const;
 const VALID_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
@@ -149,5 +150,13 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     queries.cleanup.run();
     const after  = (db.prepare("SELECT COUNT(*) as n FROM tasks").get() as { n: number }).n;
     return { removed: before - after };
+  });
+
+  // ── Manual report trigger (test email on demand) ────────────────────────────
+
+  app.post<{ Querystring: { period?: string } }>("/tasks/report", async (req) => {
+    const period = req.query.period === "evening" ? "evening" : "morning";
+    await sendReport(queries.getAll.all(), period);
+    return { sent: true, period };
   });
 }

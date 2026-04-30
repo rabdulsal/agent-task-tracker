@@ -1,3 +1,13 @@
+import { readFileSync } from "fs";
+try {
+  const env = readFileSync(".env", "utf-8");
+  for (const line of env.split("\n")) {
+    const [key, ...vals] = line.split("=");
+    if (key?.trim() && vals.length && !key.trim().startsWith("#"))
+      process.env[key.trim()] ??= vals.join("=").trim().replace(/^["']|["']$/g, "");
+  }
+} catch {}
+
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
