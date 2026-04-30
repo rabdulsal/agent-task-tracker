@@ -11,8 +11,13 @@ try {
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
+import staticPlugin from "@fastify/static";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import { registerRoutes } from "./routes.js";
 import { startScheduler } from "./scheduler.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const API_KEY = process.env.API_KEY;
 
@@ -20,11 +25,17 @@ const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: "*" });
 await app.register(sensible);
+await app.register(staticPlugin, { root: join(__dirname, "../public"), decorateReply: true });
 
-// ── API key auth (skip for /health) ──────────────────────────────────────────
+// ── Public pages ──────────────────────────────────────────────────────────────
+
+app.get("/", async (req, reply) => reply.sendFile("index.html"));
+app.get("/docs", async (req, reply) => reply.sendFile("docs.html"));
+
+// ── API key auth (skip for /health and UI pages) ──────────────────────────────
 
 app.addHook("onRequest", async (req, reply) => {
-  if (req.url === "/health") return;
+  if (req.url === "/health" || req.url === "/" || req.url === "/docs") return;
   if (!API_KEY) return; // no key set = open (useful for local dev)
 
   const provided = req.headers["x-api-key"];

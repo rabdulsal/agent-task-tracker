@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Task Tracker — API Reference</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;line-height:1.6}
+    header{background:#1a1f2e;border-bottom:1px solid #2d3748;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+    .logo{font-size:16px;font-weight:700;color:#fff}.logo span{color:#818cf8}
+    .btn{background:#818cf8;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;text-decoration:none}
+    .btn:hover{background:#6366f1}
+    .container{max-width:820px;margin:0 auto;padding:40px 20px}
+    h1{font-size:26px;font-weight:700;margin-bottom:6px}
+    .subtitle{color:#718096;font-size:14px;margin-bottom:40px}
+    h2{font-size:18px;font-weight:700;margin:36px 0 12px;color:#f1f5f9;padding-bottom:8px;border-bottom:1px solid #2d3748}
+    h3{font-size:14px;font-weight:700;margin:20px 0 8px;color:#e2e8f0}
+    p{font-size:13px;color:#a0aec0;margin-bottom:10px}
+    .endpoint{background:#1a1f2e;border:1px solid #2d3748;border-radius:8px;padding:16px 18px;margin-bottom:16px}
+    .ep-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .method{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:monospace}
+    .get{background:#0f2744;color:#60a5fa}.post{background:#0a2e1a;color:#4ade80}
+    .patch{background:#2a1a00;color:#fb923c}.delete{background:#2d0a0a;color:#f87171}
+    .path{font-family:monospace;font-size:13px;color:#f1f5f9;font-weight:600}
+    .ep-desc{font-size:12px;color:#94a3b8;margin-bottom:10px}
+    pre{background:#0d1117;border:1px solid #2d3748;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;color:#a0aec0;overflow-x:auto;margin:6px 0;position:relative}
+    .copy-btn{position:absolute;top:6px;right:8px;background:#2d3748;border:none;color:#94a3b8;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer}
+    .copy-btn:hover{background:#374151;color:#e2e8f0}
+    .tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-right:4px}
+    .req{background:#2d0a0a;color:#fca5a5}.opt{background:#1e293b;color:#94a3b8}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+    th{text-align:left;padding:6px 10px;color:#718096;font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid #2d3748}
+    td{padding:8px 10px;border-bottom:1px solid #1a1f2e;color:#a0aec0;vertical-align:top}
+    td:first-child{font-family:monospace;color:#f1f5f9}
+    .pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#1e293b;color:#94a3b8;margin:1px}
+    .note{background:#1c1407;border:1px solid #78350f;border-radius:6px;padding:10px 14px;font-size:12px;color:#fbbf24;margin:10px 0}
+    .section-intro{font-size:13px;color:#94a3b8;margin-bottom:16px}
+    a{color:#818cf8;text-decoration:none}a:hover{text-decoration:underline}
+    .nav{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px}
+    .nav a{font-size:12px;color:#718096}
+    .nav a:hover{color:#818cf8}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">🤖 Agent Task <span>Tracker</span> — API Reference</div>
+  <a class="btn" href="/">← Dashboard</a>
+</header>
+
+<div class="container">
+  <h1>API Reference</h1>
+  <p class="subtitle">REST API for AI agents to create, update, and query tasks. All endpoints return JSON.</p>
+
+  <div class="nav">
+    <a href="#auth">Authentication</a>
+    <a href="#fields">Task Fields</a>
+    <a href="#endpoints">Endpoints</a>
+    <a href="#integration">Agent Integration</a>
+    <a href="#quickstart">Quickstart</a>
+  </div>
+
+  <!-- AUTH -->
+  <h2 id="auth">Authentication</h2>
+  <p class="section-intro">Every request (except <code>GET /health</code>, <code>/</code>, and <code>/docs</code>) must include the API key as a header.</p>
+  <pre><button class="copy-btn" onclick="copy(this)">copy</button>x-api-key: YOUR_API_KEY</pre>
+  <p>Missing or incorrect key returns <code>401 {"error": "Invalid or missing x-api-key"}</code>.</p>
+
+  <!-- FIELDS -->
+  <h2 id="fields">Task Fields</h2>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+    <tr><td>id</td><td>string (UUID)</td><td>Auto-generated. Read-only.</td></tr>
+    <tr><td>title</td><td>string</td><td><span class="tag req">required</span> Short description of the task.</td></tr>
+    <tr><td>status</td><td>enum</td><td>
+      <span class="pill">pending</span>
+      <span class="pill">in_progress</span>
+      <span class="pill">done</span>
+      <span class="pill">blocked</span>
+      Default: <code>pending</code>
+    </td></tr>
+    <tr><td>priority</td><td>enum</td><td>
+      <span class="pill">low</span>
+      <span class="pill">medium</span>
+      <span class="pill">high</span>
+      <span class="pill">urgent</span>
+      Default: <code>medium</code>
+    </td></tr>
+    <tr><td>notes</td><td>string | null</td><td>Free-text context, progress updates, or error details.</td></tr>
+    <tr><td>action_needed</td><td>string | null</td><td>Set this when a human must intervene. Surfaces at the top of every email report and the dashboard.</td></tr>
+    <tr><td>agent_name</td><td>string | null</td><td>Identifier for the agent that owns this task (e.g. <code>engagement-scanner</code>).</td></tr>
+    <tr><td>created_at</td><td>ISO 8601</td><td>Auto-set on create. Read-only.</td></tr>
+    <tr><td>updated_at</td><td>ISO 8601</td><td>Auto-updated on every PATCH. Read-only.</td></tr>
+    <tr><td>completed_at</td><td>ISO 8601 | null</td><td>Auto-set when <code>status</code> becomes <code>done</code>. Cleared if status changes away from <code>done</code>.</td></tr>
+  </table>
+  <div class="note">Tasks with <code>status: "done"</code> are automatically deleted 24 hours after <code>completed_at</code>.</div>
+
+  <!-- ENDPOINTS -->
+  <h2 id="endpoints">Endpoints</h2>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method get">GET</span><span class="path">/health</span></div>
+    <div class="ep-desc">Server health check. No auth required.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>{ "ok": true, "ts": "2026-04-30T12:00:00.000Z" }</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method get">GET</span><span class="path">/tasks</span></div>
+    <div class="ep-desc">List all tasks, ordered by priority then created date. Filter by status with <code>?status=pending|in_progress|done|blocked</code>.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://agent-task-tracker.onrender.com/tasks \
+  -H "x-api-key: YOUR_KEY"</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method get">GET</span><span class="path">/tasks/summary</span></div>
+    <div class="ep-desc">Lightweight snapshot — counts by status plus all tasks needing human action. Ideal for an agent's startup health check.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>{
+  "total": 5,
+  "by_status": { "pending": 2, "in_progress": 1, "done": 1, "blocked": 1 },
+  "action_needed": [
+    { "id": "uuid", "title": "Fix auth", "action_needed": "Rotate the key", "priority": "high" }
+  ]
+}</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method get">GET</span><span class="path">/tasks/:id</span></div>
+    <div class="ep-desc">Fetch a single task by ID. Returns <code>404</code> if not found.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+  -H "x-api-key: YOUR_KEY"</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method post">POST</span><span class="path">/tasks</span></div>
+    <div class="ep-desc">Create a task. Returns <code>201</code> with the created task. Only <code>title</code> is required.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X POST https://agent-task-tracker.onrender.com/tasks \
+  -H "x-api-key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Generate weekly digest",
+    "status": "in_progress",
+    "priority": "medium",
+    "notes": "Processing 47 posts from this week",
+    "agent_name": "weekly-digest-agent"
+  }'</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method patch">PATCH</span><span class="path">/tasks/:id</span></div>
+    <div class="ep-desc">Update any fields on a task. Send only the fields you want to change. Setting <code>status: "done"</code> auto-sets <code>completed_at</code>.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button># Mark done
+curl -X PATCH https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+  -H "x-api-key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "done"}'
+
+# Flag for human action
+curl -X PATCH https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+  -H "x-api-key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "blocked", "action_needed": "OAuth token expired — needs manual re-auth"}'</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method delete">DELETE</span><span class="path">/tasks/:id</span></div>
+    <div class="ep-desc">Delete a task immediately. Returns <code>204 No Content</code>.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X DELETE https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+  -H "x-api-key: YOUR_KEY"</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method post">POST</span><span class="path">/tasks/cleanup</span></div>
+    <div class="ep-desc">Manually delete all <code>done</code> tasks older than 24h. Also runs automatically at midnight ET.</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>{ "removed": 3 }</pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header"><span class="method post">POST</span><span class="path">/tasks/report</span></div>
+    <div class="ep-desc">Trigger an email report immediately. Use <code>?period=evening</code> for the evening template (default: morning).</div>
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X POST "https://agent-task-tracker.onrender.com/tasks/report?period=morning" \
+  -H "x-api-key: YOUR_KEY"</pre>
+  </div>
+
+  <!-- INTEGRATION -->
+  <h2 id="integration">Agent Integration</h2>
+  <p class="section-intro">Drop this helper into any TypeScript/JavaScript agent:</p>
+  <pre><button class="copy-btn" onclick="copy(this)">copy</button>const BASE = "https://agent-task-tracker.onrender.com";
+const KEY  = process.env.TASK_TRACKER_API_KEY;
+const h    = { "x-api-key": KEY!, "Content-Type": "application/json" };
+
+const tracker = {
+  async create(task: { title: string; priority?: string; status?: string; notes?: string; action_needed?: string; agent_name?: string }) {
+    const res = await fetch(`${BASE}/tasks`, { method: "POST", headers: h, body: JSON.stringify(task) });
+    const { task: t } = await res.json();
+    return t.id as string;
+  },
+  async update(id: string, patch: Record&lt;string, string&gt;) {
+    await fetch(`${BASE}/tasks/${id}`, { method: "PATCH", headers: h, body: JSON.stringify(patch) });
+  },
+  async done(id: string, notes?: string) {
+    await this.update(id, { status: "done", ...(notes ? { notes } : {}) });
+  },
+  async block(id: string, action_needed: string) {
+    await this.update(id, { status: "blocked", action_needed });
+  },
+  async summary() {
+    const res = await fetch(`${BASE}/tasks/summary`, { headers: h });
+    return res.json();
+  },
+};</pre>
+
+  <h3>Python</h3>
+  <pre><button class="copy-btn" onclick="copy(this)">copy</button>import requests, os
+
+BASE = "https://agent-task-tracker.onrender.com"
+HEADERS = {"x-api-key": os.environ["TASK_TRACKER_API_KEY"], "Content-Type": "application/json"}
+
+def create_task(title, status="pending", priority="medium", notes=None, action_needed=None, agent_name=None):
+    r = requests.post(f"{BASE}/tasks", headers=HEADERS, json={
+        "title": title, "status": status, "priority": priority,
+        "notes": notes, "action_needed": action_needed, "agent_name": agent_name
+    })
+    return r.json()["task"]["id"]
+
+def update_task(task_id, **kwargs):
+    requests.patch(f"{BASE}/tasks/{task_id}", headers=HEADERS, json=kwargs)
+
+def mark_done(task_id):
+    update_task(task_id, status="done")
+
+def block_task(task_id, action_needed):
+    update_task(task_id, status="blocked", action_needed=action_needed)</pre>
+
+  <!-- QUICKSTART -->
+  <h2 id="quickstart">Agent Quickstart Pattern</h2>
+  <p class="section-intro">Standard lifecycle for a long-running agent job:</p>
+  <pre><button class="copy-btn" onclick="copy(this)">copy</button">// 1. Create task when job starts
+const taskId = await tracker.create({
+  title: "Nightly lead scan — 2026-04-30",
+  status: "in_progress",
+  priority: "medium",
+  agent_name: "nightly-scanner",
+});
+
+try {
+  // 2. Update notes as work progresses
+  await tracker.update(taskId, { notes: "Processed 142 Reddit posts, found 23 leads" });
+
+  // 3. Mark done when finished
+  await tracker.done(taskId, "Completed: 23 leads added to sheet, 3 emails sent");
+
+} catch (err) {
+  // 4. Block + flag for human if something needs attention
+  await tracker.block(taskId, `Job failed: ${err.message} — check API credentials`);
+}</pre>
+
+  <div style="margin-top:40px;padding-top:20px;border-top:1px solid #2d3748;font-size:11px;color:#4a5568">
+    Agent Task Tracker &nbsp;·&nbsp; <a href="/">Dashboard</a> &nbsp;·&nbsp;
+    Reports sent 8AM &amp; 6PM Eastern &nbsp;·&nbsp; Done tasks auto-deleted after 24h
+  </div>
+</div>
+
+<script>
+function copy(btn) {
+  const pre = btn.parentElement;
+  const text = pre.textContent.replace('copy','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1500);
+  });
+}
+</script>
+</body>
+</html>

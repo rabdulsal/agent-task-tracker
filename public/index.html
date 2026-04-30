@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Task Tracker</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+    header{background:#1a1f2e;border-bottom:1px solid #2d3748;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .logo{font-size:16px;font-weight:700;color:#fff;white-space:nowrap}.logo span{color:#818cf8}
+    .key-row{display:flex;gap:8px;align-items:center}
+    .key-row input{background:#2d3748;border:1px solid #4a5568;color:#e2e8f0;padding:6px 10px;border-radius:6px;font-size:12px;width:260px;font-family:monospace}
+    .key-row input:focus{outline:none;border-color:#818cf8}
+    .btn{background:#818cf8;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+    .btn:hover{background:#6366f1}.btn-sm{background:#2d3748;color:#a0aec0;padding:5px 10px;font-size:11px;font-weight:500}
+    .btn-sm:hover{background:#374151}
+    main{max-width:900px;margin:0 auto;padding:24px 16px}
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px}
+    .stat{background:#1a1f2e;border:1px solid #2d3748;border-radius:8px;padding:14px;text-align:center}
+    .stat .n{font-size:26px;font-weight:700}.stat .l{font-size:11px;color:#718096;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+    .section{margin-bottom:20px}
+    .sec-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#718096;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2d3748;display:flex;align-items:center;gap:6px}
+    .sec-head.warn{color:#f59e0b;border-color:#78350f}
+    .card{background:#1a1f2e;border:1px solid #2d3748;border-radius:8px;padding:12px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .card.hot{border-color:#92400e;background:#1c1407}
+    .card-left{flex:1;min-width:0}
+    .card-title{font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .card-notes{font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.5}
+    .card-action{font-size:11px;color:#fbbf24;margin-top:5px;line-height:1.5}
+    .card-action::before{content:"⚡ "}
+    .card-footer{font-size:10px;color:#4a5568;margin-top:5px}
+    .badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0}
+    .badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;white-space:nowrap}
+    .bp{background:#1e293b;color:#94a3b8}.bi{background:#0f2744;color:#60a5fa}
+    .bd{background:#052e16;color:#4ade80}.bb{background:#2d0a0a;color:#f87171}
+    .bl{background:#1e293b;color:#64748b}.bm{background:#0f1f3d;color:#93c5fd}
+    .bh{background:#292000;color:#fb923c}.bu{background:#2d0a0a;color:#f87171}
+    .empty{color:#4a5568;font-size:12px;font-style:italic;padding:6px 2px}
+    footer{display:flex;align-items:center;justify-content:space-between;margin-top:28px;padding-top:14px;border-top:1px solid #2d3748;font-size:11px;color:#4a5568}
+    .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:5px}
+    .dot.err{background:#f87171}
+    .splash{text-align:center;padding:60px 24px}
+    .splash h2{color:#e2e8f0;font-size:18px;margin-bottom:8px}
+    .splash p{color:#718096;font-size:13px}
+    a{color:#818cf8;text-decoration:none}a:hover{text-decoration:underline}
+    code{font-family:monospace;background:#2d3748;padding:1px 5px;border-radius:3px;font-size:11px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">🤖 Agent Task <span>Tracker</span></div>
+  <div class="key-row">
+    <input type="password" id="keyInput" placeholder="Paste x-api-key and press Enter" />
+    <button class="btn" onclick="saveKey()">Connect</button>
+    <a href="/docs"><button class="btn btn-sm">API Docs</button></a>
+  </div>
+</header>
+<main>
+  <div class="splash" id="splash">
+    <h2>Connect to your tracker</h2>
+    <p>Paste your <code>x-api-key</code> above and click Connect.</p>
+  </div>
+  <div id="dash" style="display:none"></div>
+</main>
+
+<script>
+let key = localStorage.getItem('att_key') || '';
+let timer, countdown = 30;
+
+if (key) { document.getElementById('keyInput').value = key; boot(); }
+document.getElementById('keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
+
+function saveKey() {
+  key = document.getElementById('keyInput').value.trim();
+  if (!key) return;
+  localStorage.setItem('att_key', key);
+  boot();
+}
+
+function boot() {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('dash').style.display = 'block';
+  load();
+  clearInterval(timer);
+  countdown = 30;
+  timer = setInterval(() => {
+    countdown--;
+    const el = document.getElementById('cd');
+    if (el) el.textContent = `Auto-refresh in ${countdown}s`;
+    if (countdown <= 0) { countdown = 30; load(); }
+  }, 1000);
+}
+
+async function load() {
+  try {
+    const h = { 'x-api-key': key };
+    const [tr, sr] = await Promise.all([
+      fetch('/tasks', { headers: h }),
+      fetch('/tasks/summary', { headers: h }),
+    ]);
+    if (tr.status === 401) { showError('Invalid API key'); return; }
+    if (!tr.ok) throw new Error('HTTP ' + tr.status);
+    const { tasks } = await tr.json();
+    const summary = await sr.json();
+    render(tasks, summary);
+  } catch(e) { showError(e.message); }
+}
+
+function showError(msg) {
+  document.getElementById('dash').innerHTML =
+    `<div class="splash"><h2 style="color:#f87171">Error</h2><p>${esc(msg)}</p></div>`;
+}
+
+const pOrder = {urgent:0,high:1,medium:2,low:3};
+function byPriority(a,b) { return (pOrder[a.priority]??4)-(pOrder[b.priority]??4); }
+
+function badgeStatus(s) {
+  return `<span class="badge ${({pending:'bp',in_progress:'bi',done:'bd',blocked:'bb'}[s]||'bp')}">${s.replace('_',' ')}</span>`;
+}
+function badgePriority(p) {
+  return `<span class="badge ${({low:'bl',medium:'bm',high:'bh',urgent:'bu'}[p]||'bl')}">${p}</span>`;
+}
+
+function card(t) {
+  const hot = t.action_needed && t.status !== 'done';
+  return `<div class="card${hot?' hot':''}">
+    <div class="card-left">
+      <div class="card-title">${esc(t.title)}</div>
+      ${t.notes?`<div class="card-notes">${esc(t.notes)}</div>`:''}
+      ${hot?`<div class="card-action">${esc(t.action_needed)}</div>`:''}
+      <div class="card-footer">${t.agent_name?`agent: ${esc(t.agent_name)} &nbsp;·&nbsp; `:''} ${timeAgo(t.updated_at)}</div>
+    </div>
+    <div class="badges">${badgePriority(t.priority)}${badgeStatus(t.status)}</div>
+  </div>`;
+}
+
+function section(title, tasks, warn=false) {
+  const items = [...tasks].sort(byPriority);
+  return `<div class="section">
+    <div class="sec-head${warn?' warn':''}">${title} <span style="opacity:.5">(${tasks.length})</span></div>
+    ${items.length ? items.map(card).join('') : '<div class="empty">none</div>'}
+  </div>`;
+}
+
+function render(tasks, summary) {
+  const action    = tasks.filter(t => t.action_needed && t.status !== 'done');
+  const inProg    = tasks.filter(t => t.status === 'in_progress');
+  const pending   = tasks.filter(t => t.status === 'pending');
+  const blocked   = tasks.filter(t => t.status === 'blocked');
+  const done      = tasks.filter(t => t.status === 'done');
+  const s = summary.by_status;
+
+  document.getElementById('dash').innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="n">${summary.total}</div><div class="l">Total</div></div>
+      <div class="stat"><div class="n" style="color:#60a5fa">${s.in_progress}</div><div class="l">In Progress</div></div>
+      <div class="stat"><div class="n" style="color:#94a3b8">${s.pending}</div><div class="l">Pending</div></div>
+      <div class="stat"><div class="n" style="color:#f87171">${s.blocked}</div><div class="l">Blocked</div></div>
+      <div class="stat"><div class="n" style="color:#4ade80">${s.done}</div><div class="l">Done</div></div>
+    </div>
+    ${action.length ? section('⚡ Action Needed', action, true) : ''}
+    ${section('In Progress', inProg)}
+    ${section('Pending', pending)}
+    ${section('Blocked', blocked)}
+    ${section('Done', done)}
+    <footer>
+      <div><span class="dot"></span>Connected &nbsp;·&nbsp; <a href="/docs">API Docs</a></div>
+      <div id="cd">Auto-refresh in ${countdown}s</div>
+      <button class="btn btn-sm" onclick="countdown=30;load()">↻ Refresh now</button>
+    </footer>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function timeAgo(iso) {
+  if (!iso) return '';
+  const s = Math.floor((Date.now()-new Date(iso))/1000);
+  if (s<60) return `${s}s ago`;
+  if (s<3600) return `${Math.floor(s/60)}m ago`;
+  if (s<86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+</script>
+</body>
+</html>
