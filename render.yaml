@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: agent-task-tracker
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ALERT_EMAIL
+        sync: false
+      - key: FROM_EMAIL
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1

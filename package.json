@@ -1,0 +1,27 @@
+{
+  "name": "agent-task-tracker",
+  "version": "1.0.0",
+  "description": "A lightweight task tracker with a REST API for AI agents, twice-daily email reports, and automatic cleanup of completed tasks.",
+  "type": "module",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev":   "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@fastify/cors":      "^9.0.1",
+    "@fastify/sensible":  "^5.6.0",
+    "better-sqlite3":     "^9.6.0",
+    "fastify":            "^4.28.0",
+    "node-cron":          "^3.0.3",
+    "resend":             "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node":           "^20.0.0",
+    "@types/node-cron":      "^3.0.11",
+    "tsx":                   "^4.19.1",
+    "typescript":            "^5.4.0"
+  }
+}
