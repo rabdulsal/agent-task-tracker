@@ -7,7 +7,7 @@ export function startScheduler(): void {
   cron.schedule("0 8 * * *", async () => {
     console.log("[scheduler] Sending morning report...");
     try {
-      await sendReport(queries.getAll.all(), "morning");
+      await sendReport(queries.getAll.all({ userId: null }), "morning");
     } catch (err: any) {
       console.error("[scheduler] Morning report failed:", err.message);
     }
@@ -17,7 +17,7 @@ export function startScheduler(): void {
   cron.schedule("0 18 * * *", async () => {
     console.log("[scheduler] Sending evening report...");
     try {
-      await sendReport(queries.getAll.all(), "evening");
+      await sendReport(queries.getAll.all({ userId: null }), "evening");
     } catch (err: any) {
       console.error("[scheduler] Evening report failed:", err.message);
     }
@@ -26,7 +26,7 @@ export function startScheduler(): void {
   // Midnight — cleanup done tasks older than 1 day
   cron.schedule("0 0 * * *", () => {
     console.log("[scheduler] Running cleanup...");
-    queries.cleanup.run();
+    queries.cleanup.run({ userId: null });
     console.log("[scheduler] Cleanup complete");
   }, { timezone: "America/New_York" });
 

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Started — Relay</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#06090f;--surface:#0d1424;--border:#1e2d42;--text:#f0f4ff;
+      --muted:#5a7296;--muted2:#8aa6c8;--violet:#7c6bff;--violet2:#5b4de8;
+      --emerald:#34d399;--red:#f87171;--amber:#fbbf24
+    }
+    html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,#1e2d4250 1px,transparent 1px);background-size:28px 28px;pointer-events:none}
+
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);position:relative}
+    .logo{font-family:monospace;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .logo-mark{width:24px;height:24px;background:linear-gradient(135deg,#7c6bff,#a78bfa);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+    .back{font-size:12px;color:var(--muted);text-decoration:none}
+    .back:hover{color:var(--text)}
+
+    main{position:relative;min-height:calc(100vh - 57px);display:flex;align-items:center;justify-content:center;padding:40px 24px}
+
+    /* ── Shared card ── */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:440px}
+    .card h1{font-size:22px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px}
+    .card .sub{font-size:14px;color:var(--muted2);margin-bottom:28px;line-height:1.6}
+
+    /* ── Form ── */
+    .field{margin-bottom:14px}
+    label{display:block;font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:5px;letter-spacing:.03em}
+    input[type=email],input[type=password],input[type=text]{
+      width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+      padding:11px 14px;border-radius:9px;font-size:14px;font-family:inherit;transition:border-color .15s
+    }
+    input:focus{outline:none;border-color:var(--violet)}
+    input::placeholder{color:var(--muted)}
+    .hint{font-size:11px;color:var(--muted);margin-top:4px}
+    .btn{width:100%;background:var(--violet);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s;margin-top:8px}
+    .btn:hover{background:var(--violet2)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .err{font-size:12px;color:var(--red);margin-top:10px;min-height:18px}
+    .toggle{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}
+    .toggle a{color:var(--violet);cursor:pointer;text-decoration:none}
+    .toggle a:hover{text-decoration:underline}
+
+    /* ── Step indicators ── */
+    .steps-bar{display:flex;gap:6px;margin-bottom:28px}
+    .step-dot{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
+    .step-dot.done{background:var(--violet)}
+
+    /* ── Success / command ── */
+    .check-icon{width:52px;height:52px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 20px}
+    .cmd-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:monospace;font-size:12px;line-height:1.7;color:var(--emerald);word-break:break-all;margin:16px 0;position:relative}
+    .copy-btn{position:absolute;top:10px;right:10px;background:var(--surface);border:1px solid var(--border);color:var(--muted2);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:color .15s,border-color .15s}
+    .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+    .copy-btn.copied{color:var(--emerald);border-color:var(--emerald)}
+    .api-key-row{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;margin:12px 0}
+    .api-key-val{flex:1;font-family:monospace;font-size:12px;color:var(--muted2);word-break:break-all}
+    .api-key-copy{background:transparent;border:none;cursor:pointer;font-size:14px;padding:0 4px;color:var(--muted);transition:color .15s}
+    .api-key-copy:hover{color:var(--text)}
+    .next-steps{margin-top:20px;font-size:13px;color:var(--muted2);line-height:1.8}
+    .next-steps ol{padding-left:18px}
+    .next-steps li{margin-bottom:6px}
+    .next-steps code{font-size:11px;background:rgba(124,107,255,.12);color:#a78bfa;padding:1px 5px;border-radius:3px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-mark">↺</div>
+    relay
+  </div>
+  <a class="back" href="/">← Back</a>
+</header>
+
+<main>
+  <!-- ── Step 1: Sign up ── -->
+  <div class="card" id="view-signup">
+    <div class="steps-bar">
+      <div class="step-dot done" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+    <h1>Create your account</h1>
+    <p class="sub">Enter your email and a password. We'll send a confirmation link.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="su-email" placeholder="you@company.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="su-password" placeholder="8+ characters" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label>Agent name <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <input type="text" id="su-agent" placeholder="claude-code" autocomplete="off">
+      <div class="hint">How your tasks will be tagged. Defaults to your email username.</div>
+    </div>
+    <button class="btn" id="su-btn" onclick="signUp()">Create account</button>
+    <div class="err" id="su-err"></div>
+    <div class="toggle">Already have an account? <a onclick="showLogin()">Sign in</a></div>
+  </div>
+
+  <!-- ── Step 1b: Sign in ── -->
+  <div class="card" id="view-login" style="display:none">
+    <div class="steps-bar">
+      <div class="step-dot done"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <h1>Sign in</h1>
+    <p class="sub">Sign in to retrieve your API key.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="li-email" placeholder="you@company.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="li-password" placeholder="Your password" autocomplete="current-password">
+    </div>
+    <button class="btn" id="li-btn" onclick="signIn()">Sign in</button>
+    <div class="err" id="li-err"></div>
+    <div class="toggle">No account? <a onclick="showSignUp()">Create one</a></div>
+  </div>
+
+  <!-- ── Step 2: Check email ── -->
+  <div class="card" id="view-confirm" style="display:none">
+    <div class="steps-bar">
+      <div class="step-dot done"></div>
+      <div class="step-dot done" id="dot2b"></div>
+      <div class="step-dot" id="dot3b"></div>
+    </div>
+    <h1>Check your email</h1>
+    <p class="sub">We sent a confirmation link to <strong id="confirm-email"></strong>. Click it to activate your account — this tab will update automatically.</p>
+    <div style="text-align:center;padding:16px 0;font-size:32px">📬</div>
+    <div class="err" id="confirm-err" style="text-align:center"></div>
+  </div>
+
+  <!-- ── Step 3: Done ── -->
+  <div class="card" id="view-done" style="display:none">
+    <div class="steps-bar">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+    </div>
+    <div class="check-icon">✓</div>
+    <h1 style="text-align:center">You're all set.</h1>
+    <p class="sub" style="text-align:center">Run this in your terminal to wire Relay into Claude Code:</p>
+
+    <div class="cmd-block" id="cmd-block">
+      <span id="cmd-text"></span>
+      <button class="copy-btn" id="copy-btn" onclick="copyCmd()">Copy</button>
+    </div>
+
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Your API key</div>
+    <div class="api-key-row">
+      <span class="api-key-val" id="api-key-val"></span>
+      <button class="api-key-copy" onclick="copyKey()" title="Copy key">⎘</button>
+    </div>
+
+    <div class="next-steps">
+      <ol>
+        <li>Run the command above in your terminal</li>
+        <li>Restart Claude Code (or reload the MCP server)</li>
+        <li>In any session, call <code>relay_summary</code> to orient — costs ~300 tokens</li>
+        <li>Call <code>relay_create</code> when starting significant work</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── Supabase client (CDN) ─────────────────────────────────────────────────────
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL  = document.currentScript?.dataset?.url  ?? window.__SUPABASE_URL  ?? "";
+const SUPABASE_ANON = document.currentScript?.dataset?.anon ?? window.__SUPABASE_ANON ?? "";
+
+// These are injected at runtime — see server.ts /get-started route or set globally
+// In production they come from the page (non-secret anon key is safe to expose)
+const _url  = window.RELAY_SUPABASE_URL  ?? SUPABASE_URL;
+const _anon = window.RELAY_SUPABASE_ANON ?? SUPABASE_ANON;
+
+let supabase = null;
+if (_url && _anon) {
+  supabase = window.supabase.createClient(_url, _anon);
+} else {
+  console.warn("[relay] SUPABASE_URL / ANON_KEY not configured — auth unavailable");
+}
+
+// ── View switching ────────────────────────────────────────────────────────────
+function show(id) {
+  ['view-signup','view-login','view-confirm','view-done'].forEach(v =>
+    document.getElementById(v).style.display = v === id ? 'block' : 'none'
+  );
+}
+function showLogin()  { show('view-login'); }
+function showSignUp() { show('view-signup'); }
+
+// ── Handle Supabase redirect (email confirmation callback) ────────────────────
+async function handleAuthRedirect() {
+  if (!supabase) return;
+
+  // Supabase PKCE flow: URL contains `code` param
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const type = params.get("type"); // 'signup' or 'recovery'
+
+  // Supabase implicit flow: URL hash contains access_token
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  const hashToken = hash.get("access_token");
+
+  let session = null;
+
+  if (code) {
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) session = data.session;
+    } catch(e) {}
+    // Clean up URL
+    window.history.replaceState({}, '', window.location.pathname);
+  } else if (hashToken) {
+    session = { access_token: hashToken };
+    window.history.replaceState({}, '', window.location.pathname);
+  } else {
+    // Check if already signed in from a previous session
+    const { data } = await supabase.auth.getSession();
+    session = data?.session;
+  }
+
+  if (session?.access_token) {
+    await provision(session.access_token);
+  }
+}
+
+// ── Sign up ───────────────────────────────────────────────────────────────────
+async function signUp() {
+  if (!supabase) { document.getElementById('su-err').textContent = 'Auth not configured.'; return; }
+  const email     = document.getElementById('su-email').value.trim();
+  const password  = document.getElementById('su-password').value;
+  const agentName = document.getElementById('su-agent').value.trim();
+  const btn       = document.getElementById('su-btn');
+  const err       = document.getElementById('su-err');
+
+  if (!email || !password) { err.textContent = 'Email and password are required.'; return; }
+  if (password.length < 8)  { err.textContent = 'Password must be 8+ characters.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+  err.textContent = '';
+
+  // Store agent_name in metadata so provision can use it
+  const { error } = await supabase.auth.signUp({
+    email, password,
+    options: { data: { agent_name: agentName || email.split('@')[0].replace(/[^a-z0-9_-]/gi, '-').toLowerCase() } }
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Create account';
+
+  if (error) { err.textContent = error.message; return; }
+
+  document.getElementById('confirm-email').textContent = email;
+  show('view-confirm');
+
+  // Poll for session (user clicked the email link in another tab)
+  pollForSession();
+}
+
+// ── Sign in ───────────────────────────────────────────────────────────────────
+async function signIn() {
+  if (!supabase) { document.getElementById('li-err').textContent = 'Auth not configured.'; return; }
+  const email    = document.getElementById('li-email').value.trim();
+  const password = document.getElementById('li-password').value;
+  const btn      = document.getElementById('li-btn');
+  const err      = document.getElementById('li-err');
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  err.textContent = '';
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  btn.disabled = false;
+  btn.textContent = 'Sign in';
+
+  if (error) { err.textContent = error.message; return; }
+  if (data.session) await provision(data.session.access_token);
+}
+
+// ── Poll for session while user is on the "check your email" step ─────────────
+let pollTimer;
+function pollForSession() {
+  pollTimer = setInterval(async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.access_token) {
+      clearInterval(pollTimer);
+      await provision(data.session.access_token);
+    }
+  }, 3000);
+}
+
+// ── Provision: call backend, get API key ──────────────────────────────────────
+async function provision(access_token) {
+  const { data: userData } = await supabase.auth.getUser();
+  const agent_name = userData?.user?.user_metadata?.agent_name ?? '';
+
+  let data;
+  try {
+    const res = await fetch('/auth/provision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token, agent_name }),
+    });
+    data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Provision failed');
+  } catch(e) {
+    document.getElementById('confirm-err').textContent = e.message;
+    return;
+  }
+
+  document.getElementById('cmd-text').textContent   = data.mcp_command;
+  document.getElementById('api-key-val').textContent = data.api_key;
+  show('view-done');
+}
+
+// ── Copy helpers ──────────────────────────────────────────────────────────────
+function copyCmd() {
+  navigator.clipboard.writeText(document.getElementById('cmd-text').textContent);
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+function copyKey() {
+  navigator.clipboard.writeText(document.getElementById('api-key-val').textContent);
+}
+
+// ── Enter key support ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('view-signup').style.display !== 'none') signUp();
+  if (document.getElementById('view-login').style.display  !== 'none') signIn();
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+handleAuthRedirect();
+</script>
+</body>
+</html>
