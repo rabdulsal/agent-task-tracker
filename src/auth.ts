@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { randomUUID, randomBytes, createHmac, timingSafeEqual } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import { queries, type User } from "./db.js";
 
 const HOSTED_API_URL = "https://agent-task-tracker.onrender.com";
@@ -8,43 +8,41 @@ function generateRelayToken(): string {
   return "rt_" + randomBytes(32).toString("hex");
 }
 
-// Read at call-time, not module-load-time — ESM hoists imports before .env is parsed
-const jwtSecret   = () => process.env.SUPABASE_JWT_SECRET ?? "";
-const apiBaseUrl  = () => process.env.API_BASE_URL ?? "http://localhost:3000";
+const supabaseUrl  = () => process.env.SUPABASE_URL     ?? "";
+const supabaseAnon = () => process.env.SUPABASE_ANON_KEY ?? "";
+const apiBaseUrl   = () => process.env.API_BASE_URL      ?? "http://localhost:4000";
 
-// ── Supabase JWT verification (HS256, no external packages) ──────────────────
+// ── Supabase token verification via API (supports HS256 and ES256) ────────────
+// Verifying locally requires matching the signing algorithm (HS256 vs ES256).
+// Supabase newer projects use ES256. Delegating to Supabase's own /auth/v1/user
+// endpoint is simpler, always correct, and handles algorithm changes automatically.
 
 interface SupabaseClaims {
-  sub:   string;   // supabase user UUID
+  sub:   string;
   email: string;
-  exp:   number;
 }
 
-function verifySupabaseJWT(token: string): SupabaseClaims | null {
-  const secret = jwtSecret();
-  if (!secret) {
-    console.warn("[auth] SUPABASE_JWT_SECRET not set — skipping JWT verification");
+async function verifySupabaseToken(token: string): Promise<SupabaseClaims | null> {
+  const url  = supabaseUrl();
+  const anon = supabaseAnon();
+  if (!url || !anon) {
+    console.warn("[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set");
     return null;
   }
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  const [headerB64, payloadB64, sigB64] = parts;
-
-  const expected = createHmac("sha256", secret)
-    .update(`${headerB64}.${payloadB64}`)
-    .digest("base64url");
-
   try {
-    if (!timingSafeEqual(Buffer.from(sigB64), Buffer.from(expected))) return null;
-  } catch { return null; }
-
-  let payload: SupabaseClaims;
-  try {
-    payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString());
-  } catch { return null; }
-
-  if (payload.exp < Date.now() / 1000) return null;
-  return payload;
+    const res = await fetch(`${url}/auth/v1/user`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "apikey": anon,
+      },
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { id: string; email: string };
+    if (!data.id || !data.email) return null;
+    return { sub: data.id, email: data.email };
+  } catch {
+    return null;
+  }
 }
 
 function slugify(email: string): string {
@@ -63,7 +61,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
    * POST /auth/provision
    * Called by the get-started page after Supabase email confirmation.
    * Body: { access_token: string, agent_name?: string }
-   * Returns: { api_key, agent_name, mcp_command }
+   * Returns: { api_key, relay_token, agent_name, mcp_command }
    */
   app.post<{
     Body: { access_token: string; agent_name?: string };
@@ -71,7 +69,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     const { access_token, agent_name: requestedName } = req.body ?? {};
     if (!access_token) throw app.httpErrors.badRequest("access_token is required");
 
-    const claims = verifySupabaseJWT(access_token);
+    const claims = await verifySupabaseToken(access_token);
     if (!claims) {
       return reply.code(401).send({ error: "Invalid or expired Supabase token" });
     }
@@ -101,12 +99,9 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
 
   /**
    * GET /auth/me
-   * Returns the caller's Relay identity.
-   * Requires: Authorization: Bearer <supabase_access_token>
-   *   OR x-api-key (for agents calling from Claude Code)
+   * Requires: Authorization: Bearer <supabase_access_token>  OR  x-api-key
    */
   app.get("/auth/me", async (req, reply) => {
-    // x-api-key path — agents calling from Claude Code or scripts
     const apiKey = req.headers["x-api-key"] as string | undefined;
     if (apiKey) {
       const user = queries.getUserByApiKey.get(apiKey);
@@ -114,12 +109,11 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
       return { email: user.email, api_key: user.api_key, agent_name: user.agent_name, mcp_command: mcpCommand(user) };
     }
 
-    // Supabase Bearer token path — web page after signup
     const authHeader = req.headers.authorization ?? "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
     if (!token) return reply.code(401).send({ error: "Provide x-api-key or Authorization: Bearer <token>" });
 
-    const claims = verifySupabaseJWT(token);
+    const claims = await verifySupabaseToken(token);
     if (!claims) return reply.code(401).send({ error: "Invalid or expired token" });
 
     const user = queries.getUserBySupabaseUid.get(claims.sub);
@@ -130,10 +124,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
 
   /**
    * GET /auth/resolve
-   * Called by the relay-mcp package on startup to exchange a relay_token for credentials.
-   * Requires: x-relay-token header
-   * Returns: { api_key, api_url, agent_name }
-   * No auth beyond the token itself — rate limit at the proxy/infra layer if needed.
+   * Exchanges x-relay-token for { api_key, api_url, agent_name }
    */
   app.get("/auth/resolve", async (req, reply) => {
     const token = req.headers["x-relay-token"] as string | undefined;

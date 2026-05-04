@@ -138,6 +138,7 @@ app.addHook("onRequest", async (req, reply) => {
 
   if (PUBLIC_PATHS.has(url)) return;
   if (PUBLIC_PREFIXES.some(p => url.startsWith(p))) return;
+  if (/\.(png|jpg|jpeg|ico|svg|css|js|woff2?)$/.test(url)) return;
 
   const provided = req.headers["x-api-key"] as string | undefined;
   if (!provided) return reply.code(401).send({ error: "Missing x-api-key header" });
