@@ -181,10 +181,10 @@ const SUPABASE_ANON = document.currentScript?.dataset?.anon ?? window.__SUPABASE
 const _url  = window.RELAY_SUPABASE_URL  ?? SUPABASE_URL;
 const _anon = window.RELAY_SUPABASE_ANON ?? SUPABASE_ANON;
 
-let supabase = null;
+let sb = null;
 try {
   if (_url && _anon && window.supabase) {
-    supabase = window.supabase.createClient(_url, _anon);
+    sb = window.supabase.createClient(_url, _anon);
   } else {
     console.warn("[relay] SUPABASE_URL / ANON_KEY not configured — auth unavailable");
   }
@@ -203,7 +203,7 @@ function showSignUp() { show('view-signup'); }
 
 // ── Handle Supabase redirect (email confirmation callback) ────────────────────
 async function handleAuthRedirect() {
-  if (!supabase) return;
+  if (!sb) return;
 
   // Supabase PKCE flow: URL contains `code` param
   const params = new URLSearchParams(window.location.search);
@@ -218,7 +218,7 @@ async function handleAuthRedirect() {
 
   if (code) {
     try {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      const { data, error } = await sb.auth.exchangeCodeForSession(code);
       if (!error) session = data.session;
     } catch(e) {}
     // Clean up URL
@@ -228,7 +228,7 @@ async function handleAuthRedirect() {
     window.history.replaceState({}, '', window.location.pathname);
   } else {
     // Check if already signed in from a previous session
-    const { data } = await supabase.auth.getSession();
+    const { data } = await sb.auth.getSession();
     session = data?.session;
   }
 
@@ -239,7 +239,7 @@ async function handleAuthRedirect() {
 
 // ── Sign up ───────────────────────────────────────────────────────────────────
 async function signUp() {
-  if (!supabase) { document.getElementById('su-err').textContent = 'Auth not configured.'; return; }
+  if (!sb) { document.getElementById('su-err').textContent = 'Auth not configured.'; return; }
   const email     = document.getElementById('su-email').value.trim();
   const password  = document.getElementById('su-password').value;
   const agentName = document.getElementById('su-agent').value.trim();
@@ -254,7 +254,7 @@ async function signUp() {
   err.textContent = '';
 
   // Store agent_name in metadata so provision can use it
-  const { error } = await supabase.auth.signUp({
+  const { error } = await sb.auth.signUp({
     email, password,
     options: { data: { agent_name: agentName || email.split('@')[0].replace(/[^a-z0-9_-]/gi, '-').toLowerCase() } }
   });
@@ -273,7 +273,7 @@ async function signUp() {
 
 // ── Sign in ───────────────────────────────────────────────────────────────────
 async function signIn() {
-  if (!supabase) { document.getElementById('li-err').textContent = 'Auth not configured.'; return; }
+  if (!sb) { document.getElementById('li-err').textContent = 'Auth not configured.'; return; }
   const email    = document.getElementById('li-email').value.trim();
   const password = document.getElementById('li-password').value;
   const btn      = document.getElementById('li-btn');
@@ -283,7 +283,7 @@ async function signIn() {
   btn.textContent = 'Signing in…';
   err.textContent = '';
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
   btn.disabled = false;
   btn.textContent = 'Sign in';
@@ -296,7 +296,7 @@ async function signIn() {
 let pollTimer;
 function pollForSession() {
   pollTimer = setInterval(async () => {
-    const { data } = await supabase.auth.getSession();
+    const { data } = await sb.auth.getSession();
     if (data?.session?.access_token) {
       clearInterval(pollTimer);
       await provision(data.session.access_token);
@@ -306,7 +306,7 @@ function pollForSession() {
 
 // ── Provision: call backend, get API key ──────────────────────────────────────
 async function provision(access_token) {
-  const { data: userData } = await supabase.auth.getUser();
+  const { data: userData } = await sb.auth.getUser();
   const agent_name = userData?.user?.user_metadata?.agent_name ?? '';
 
   let data;
