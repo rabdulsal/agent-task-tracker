@@ -171,9 +171,6 @@
   </div>
 </main>
 
-<script>
-// ── Supabase client (CDN) ─────────────────────────────────────────────────────
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL  = document.currentScript?.dataset?.url  ?? window.__SUPABASE_URL  ?? "";
@@ -185,10 +182,14 @@ const _url  = window.RELAY_SUPABASE_URL  ?? SUPABASE_URL;
 const _anon = window.RELAY_SUPABASE_ANON ?? SUPABASE_ANON;
 
 let supabase = null;
-if (_url && _anon) {
-  supabase = window.supabase.createClient(_url, _anon);
-} else {
-  console.warn("[relay] SUPABASE_URL / ANON_KEY not configured — auth unavailable");
+try {
+  if (_url && _anon && window.supabase) {
+    supabase = window.supabase.createClient(_url, _anon);
+  } else {
+    console.warn("[relay] SUPABASE_URL / ANON_KEY not configured — auth unavailable");
+  }
+} catch(e) {
+  console.error("[relay] Supabase init failed:", e);
 }
 
 // ── View switching ────────────────────────────────────────────────────────────
