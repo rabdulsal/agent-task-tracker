@@ -98,9 +98,9 @@
       <input type="text" id="su-agent" placeholder="claude-code" autocomplete="off">
       <div class="hint">How your tasks will be tagged. Defaults to your email username.</div>
     </div>
-    <button class="btn" id="su-btn" onclick="signUp()">Create account</button>
+    <button class="btn" id="su-btn">Create account</button>
     <div class="err" id="su-err"></div>
-    <div class="toggle">Already have an account? <a onclick="showLogin()">Sign in</a></div>
+    <div class="toggle">Already have an account? <a id="to-login">Sign in</a></div>
   </div>
 
   <!-- ── Step 1b: Sign in ── -->
@@ -120,9 +120,9 @@
       <label>Password</label>
       <input type="password" id="li-password" placeholder="Your password" autocomplete="current-password">
     </div>
-    <button class="btn" id="li-btn" onclick="signIn()">Sign in</button>
+    <button class="btn" id="li-btn">Sign in</button>
     <div class="err" id="li-err"></div>
-    <div class="toggle">No account? <a onclick="showSignUp()">Create one</a></div>
+    <div class="toggle">No account? <a id="to-signup">Create one</a></div>
   </div>
 
   <!-- ── Step 2: Check email ── -->
@@ -151,13 +151,13 @@
 
     <div class="cmd-block" id="cmd-block">
       <span id="cmd-text"></span>
-      <button class="copy-btn" id="copy-btn" onclick="copyCmd()">Copy</button>
+      <button class="copy-btn" id="copy-btn">Copy</button>
     </div>
 
     <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Your API key</div>
     <div class="api-key-row">
       <span class="api-key-val" id="api-key-val"></span>
-      <button class="api-key-copy" onclick="copyKey()" title="Copy key">⎘</button>
+      <button class="api-key-copy" id="api-key-copy" title="Copy key">⎘</button>
     </div>
 
     <div class="next-steps">
@@ -340,15 +340,23 @@ function copyKey() {
   navigator.clipboard.writeText(document.getElementById('api-key-val').textContent);
 }
 
-// ── Enter key support ─────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  if (document.getElementById('view-signup').style.display !== 'none') signUp();
-  if (document.getElementById('view-login').style.display  !== 'none') signIn();
-});
+// ── Wire up all handlers after DOM is ready ───────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('su-btn').addEventListener('click', signUp);
+  document.getElementById('li-btn').addEventListener('click', signIn);
+  document.getElementById('copy-btn').addEventListener('click', copyCmd);
+  document.getElementById('api-key-copy').addEventListener('click', copyKey);
+  document.getElementById('to-login').addEventListener('click', showLogin);
+  document.getElementById('to-signup').addEventListener('click', showSignUp);
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-handleAuthRedirect();
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (document.getElementById('view-signup').style.display !== 'none') signUp();
+    if (document.getElementById('view-login').style.display  !== 'none') signIn();
+  });
+
+  handleAuthRedirect();
+});
 </script>
 </body>
 </html>
