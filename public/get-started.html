@@ -227,9 +227,9 @@ async function handleAuthRedirect() {
     session = { access_token: hashToken };
     window.history.replaceState({}, '', window.location.pathname);
   } else {
-    // Check if already signed in from a previous session
-    const { data } = await sb.auth.getSession();
-    session = data?.session;
+    // Only restore a session if the user arrived via a confirmed email link (code/hash).
+    // Don't auto-provision from a stale localStorage session — it may be from a different project.
+    return;
   }
 
   if (session?.access_token) {

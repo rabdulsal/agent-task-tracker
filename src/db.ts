@@ -39,9 +39,13 @@ db.exec(`
 `);
 
 // Idempotent migration: add relay_token column for existing DBs
+// SQLite does not allow UNIQUE on ALTER TABLE ADD COLUMN — add column then index separately
 try {
-  db.exec(`ALTER TABLE users ADD COLUMN relay_token TEXT UNIQUE`);
+  db.exec(`ALTER TABLE users ADD COLUMN relay_token TEXT`);
   console.log("[db] migrated: added relay_token to users");
+} catch {}
+try {
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_relay_token ON users(relay_token) WHERE relay_token IS NOT NULL`);
 } catch {}
 
 // Idempotent migration: scope tasks by user
