@@ -18,6 +18,7 @@ import { dirname, join } from "path";
 import { queries } from "./db.js";
 import { registerRoutes } from "./routes.js";
 import { registerAuthRoutes } from "./auth.js";
+import { registerAdminRoutes } from "./admin.js";
 import { startScheduler } from "./scheduler.js";
 
 // ── Type augmentation ─────────────────────────────────────────────────────────
@@ -128,10 +129,14 @@ app.post<{ Body: { email?: string; source?: string } }>("/waitlist", async (req,
 
 await registerAuthRoutes(app);
 
+// ── Admin routes (self-authenticated — not part of public API) ────────────────
+
+await registerAdminRoutes(app);
+
 // ── API key / user auth hook ──────────────────────────────────────────────────
 
 const PUBLIC_PATHS = new Set(["/", "/docs", "/get-started", "/health", "/waitlist"]);
-const PUBLIC_PREFIXES = ["/dashboard/", "/auth/"];
+const PUBLIC_PREFIXES = ["/dashboard/", "/auth/", "/admin/"];
 
 app.addHook("onRequest", async (req, reply) => {
   const url = req.url.split("?")[0];

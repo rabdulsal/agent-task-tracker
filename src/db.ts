@@ -136,6 +136,16 @@ export const queries = {
        AND ${SCOPE}`
   ),
 
+  // ── Admin ─────────────────────────────────────────────────────────────────
+
+  countOrphans: db.prepare<[], { n: number }>(
+    `SELECT COUNT(*) as n FROM tasks WHERE user_id IS NULL`
+  ),
+
+  migrateOrphans: db.prepare<{ userId: string }, void>(
+    `UPDATE tasks SET user_id = @userId WHERE user_id IS NULL`
+  ),
+
   // ── Users ────────────────────────────────────────────────────────────────────
 
   getUserByApiKey: db.prepare<[string], User>(
