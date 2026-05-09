@@ -69,6 +69,7 @@ await app.register(staticPlugin, {
 
 app.get("/",            async (req, reply) => reply.sendFile("index.html"));
 app.get("/docs",        async (req, reply) => reply.sendFile("docs.html"));
+app.get("/privacy",     async (req, reply) => reply.sendFile("privacy.html"));
 app.get("/get-started", async (req, reply) => {
   // Inject public Supabase credentials as global JS vars (anon key is safe to expose)
   const injection = `<script>
@@ -135,7 +136,7 @@ await registerAdminRoutes(app);
 
 // ── API key / user auth hook ──────────────────────────────────────────────────
 
-const PUBLIC_PATHS = new Set(["/", "/docs", "/get-started", "/health", "/waitlist"]);
+const PUBLIC_PATHS = new Set(["/", "/docs", "/get-started", "/privacy", "/health", "/waitlist"]);
 const PUBLIC_PREFIXES = ["/dashboard/", "/auth/", "/admin/"];
 
 app.addHook("onRequest", async (req, reply) => {
