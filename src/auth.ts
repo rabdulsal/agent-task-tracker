@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { randomUUID, randomBytes } from "crypto";
 import { queries, type User } from "./db.js";
 
-const HOSTED_API_URL = "https://agent-task-tracker.onrender.com";
+const HOSTED_API_URL = "https://www.tryrelayapp.com";
 
 function generateRelayToken(): string {
   return "rt_" + randomBytes(32).toString("hex");

@@ -36,7 +36,7 @@ function section(title: string, tasks: Task[], accent: string): string {
 export async function sendReport(tasks: Task[], period: "morning" | "evening"): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const to     = process.env.ALERT_EMAIL;
-  const from   = process.env.FROM_EMAIL ?? "tasks@webslingerai.com";
+  const from   = process.env.FROM_EMAIL ?? "relay@salaamsolutions.io";
   if (!apiKey || !to) {
     console.warn("[mailer] RESEND_API_KEY or ALERT_EMAIL not set — skipping email");
     return;

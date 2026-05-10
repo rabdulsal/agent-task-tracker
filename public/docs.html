@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent Task Tracker — API Reference</title>
+  <link rel="icon" type="image/png" href="/logo-v3.png">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;line-height:1.6}
@@ -107,7 +108,7 @@
   <div class="endpoint">
     <div class="ep-header"><span class="method get">GET</span><span class="path">/tasks</span></div>
     <div class="ep-desc">List all tasks, ordered by priority then created date. Filter by status with <code>?status=pending|in_progress|done|blocked</code>.</div>
-    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://agent-task-tracker.onrender.com/tasks \
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://tryrelayapp.com/tasks \
   -H "x-api-key: YOUR_KEY"</pre>
   </div>
 
@@ -126,14 +127,14 @@
   <div class="endpoint">
     <div class="ep-header"><span class="method get">GET</span><span class="path">/tasks/:id</span></div>
     <div class="ep-desc">Fetch a single task by ID. Returns <code>404</code> if not found.</div>
-    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://tryrelayapp.com/tasks/TASK_ID \
   -H "x-api-key: YOUR_KEY"</pre>
   </div>
 
   <div class="endpoint">
     <div class="ep-header"><span class="method post">POST</span><span class="path">/tasks</span></div>
     <div class="ep-desc">Create a task. Returns <code>201</code> with the created task. Only <code>title</code> is required.</div>
-    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X POST https://agent-task-tracker.onrender.com/tasks \
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X POST https://tryrelayapp.com/tasks \
   -H "x-api-key: YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -149,13 +150,13 @@
     <div class="ep-header"><span class="method patch">PATCH</span><span class="path">/tasks/:id</span></div>
     <div class="ep-desc">Update any fields on a task. Send only the fields you want to change. Setting <code>status: "done"</code> auto-sets <code>completed_at</code>.</div>
     <pre><button class="copy-btn" onclick="copy(this)">copy</button># Mark done
-curl -X PATCH https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+curl -X PATCH https://tryrelayapp.com/tasks/TASK_ID \
   -H "x-api-key: YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"status": "done"}'
 
 # Flag for human action
-curl -X PATCH https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+curl -X PATCH https://tryrelayapp.com/tasks/TASK_ID \
   -H "x-api-key: YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"status": "blocked", "action_needed": "OAuth token expired — needs manual re-auth"}'</pre>
@@ -164,7 +165,7 @@ curl -X PATCH https://agent-task-tracker.onrender.com/tasks/TASK_ID \
   <div class="endpoint">
     <div class="ep-header"><span class="method delete">DELETE</span><span class="path">/tasks/:id</span></div>
     <div class="ep-desc">Delete a task immediately. Returns <code>204 No Content</code>.</div>
-    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X DELETE https://agent-task-tracker.onrender.com/tasks/TASK_ID \
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X DELETE https://tryrelayapp.com/tasks/TASK_ID \
   -H "x-api-key: YOUR_KEY"</pre>
   </div>
 
@@ -177,14 +178,14 @@ curl -X PATCH https://agent-task-tracker.onrender.com/tasks/TASK_ID \
   <div class="endpoint">
     <div class="ep-header"><span class="method post">POST</span><span class="path">/tasks/report</span></div>
     <div class="ep-desc">Trigger an email report immediately. Use <code>?period=evening</code> for the evening template (default: morning).</div>
-    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X POST "https://agent-task-tracker.onrender.com/tasks/report?period=morning" \
+    <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl -X POST "https://tryrelayapp.com/tasks/report?period=morning" \
   -H "x-api-key: YOUR_KEY"</pre>
   </div>
 
   <!-- INTEGRATION -->
   <h2 id="integration">Agent Integration</h2>
   <p class="section-intro">Drop this helper into any TypeScript/JavaScript agent:</p>
-  <pre><button class="copy-btn" onclick="copy(this)">copy</button>const BASE = "https://agent-task-tracker.onrender.com";
+  <pre><button class="copy-btn" onclick="copy(this)">copy</button>const BASE = "https://tryrelayapp.com";
 const KEY  = process.env.TASK_TRACKER_API_KEY;
 const h    = { "x-api-key": KEY!, "Content-Type": "application/json" };
 
@@ -212,7 +213,7 @@ const tracker = {
   <h3>Python</h3>
   <pre><button class="copy-btn" onclick="copy(this)">copy</button>import requests, os
 
-BASE = "https://agent-task-tracker.onrender.com"
+BASE = "https://tryrelayapp.com"
 HEADERS = {"x-api-key": os.environ["TASK_TRACKER_API_KEY"], "Content-Type": "application/json"}
 
 def create_task(title, status="pending", priority="medium", notes=None, action_needed=None, agent_name=None):
