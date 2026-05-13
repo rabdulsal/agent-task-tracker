@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Relay Wordmark — Version C</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #06090f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 72px;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #5a7296;
+    }
+    .pair {
+      display: flex;
+      gap: 48px;
+      align-items: center;
+    }
+    .chip-label {
+      font-size: 10px;
+      color: #5a7296;
+      text-align: center;
+      margin-top: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+    .on-light {
+      background: #f0f4ff;
+      padding: 22px 32px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<!--
+  Font metrics at 46px Inter 900, letter-spacing -2px (approx):
+    baseline y=50
+    cap-top  y≈17  (33px above baseline)
+    asc-top  y≈12  (38px above baseline) — l ascender
+    desc-bot y≈62  (12px below baseline) — y descender
+
+  Letter x-positions (start of each glyph):
+    R  x=32  (~31px wide)
+    e  x=63  (~27px wide)
+    l  x=90  (~13px wide)
+    a  x=103 (~27px wide)
+    y  x=130 (~27px wide, ends ~157)
+
+  Action lines (all inside skewX(-16) so they share the lean):
+    — 3 horizontal lines LEFT of R: x 4→24/2→26/6→22, y=22/30/38
+    — 1 short line at TOP of l:     x 88→107,          y=12
+    — 1 short line at BOTTOM of y:  x 130→147,         y=63
+-->
+
+<!-- ══ DARK VERSION ══ -->
+<div class="row">
+  <div class="label">Dark background</div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 72" width="360" height="108">
+    <defs>
+      <style>.t{font-family:'Inter',system-ui,sans-serif;font-weight:900;font-size:46px;letter-spacing:-2px}</style>
+    </defs>
+    <g transform="skewX(-16)">
+
+      <!-- 3 horizontal speed lines left of R (blue, fading out left→right) -->
+      <g stroke="#3D7EF5" stroke-linecap="round" fill="none">
+        <line x1="4"  y1="22" x2="24" y2="22" stroke-width="2.2" opacity=".45"/>
+        <line x1="2"  y1="30" x2="26" y2="30" stroke-width="2.8" opacity=".75"/>
+        <line x1="6"  y1="38" x2="22" y2="38" stroke-width="2.2" opacity=".45"/>
+      </g>
+
+      <!-- Action line at top of 'l' (black — connects to top of ascender) -->
+      <line x1="86" y1="17" x2="107" y2="17"
+            stroke="#f0f4ff" stroke-width="2.2" stroke-linecap="round" opacity=".9"/>
+
+      <!-- Action line at bottom of 'y' (pink — connects to tail of descender) -->
+      <line x1="130" y1="60" x2="148" y2="60"
+            stroke="#F02D5A" stroke-width="2.2" stroke-linecap="round" opacity=".9"/>
+
+      <!-- Wordmark: R=blue, ela=white, y=pink -->
+      <text class="t" x="32" y="50">
+        <tspan fill="#3D7EF5">R</tspan>
+        <tspan fill="#f0f4ff">ela</tspan>
+        <tspan fill="#F02D5A">y</tspan>
+      </text>
+
+    </g>
+  </svg>
+  <div class="chip-label">R blue · ela white · y pink</div>
+</div>
+
+<!-- ══ LIGHT VERSION ══ -->
+<div class="row">
+  <div class="label">Light background</div>
+  <div class="on-light">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 72" width="360" height="108">
+      <defs>
+        <style>.t2{font-family:'Inter',system-ui,sans-serif;font-weight:900;font-size:46px;letter-spacing:-2px}</style>
+      </defs>
+      <g transform="skewX(-16)">
+
+        <!-- 3 horizontal speed lines left of R (blue) -->
+        <g stroke="#3D7EF5" stroke-linecap="round" fill="none">
+          <line x1="4"  y1="22" x2="24" y2="22" stroke-width="2.2" opacity=".45"/>
+          <line x1="2"  y1="30" x2="26" y2="30" stroke-width="2.8" opacity=".75"/>
+          <line x1="6"  y1="38" x2="22" y2="38" stroke-width="2.2" opacity=".45"/>
+        </g>
+
+        <!-- Action line at top of 'l' (black — connects to top of ascender) -->
+        <line x1="86" y1="17" x2="107" y2="17"
+              stroke="#06090f" stroke-width="2.2" stroke-linecap="round" opacity=".9"/>
+
+        <!-- Action line at bottom of 'y' (pink — connects to tail of descender) -->
+        <line x1="130" y1="60" x2="148" y2="60"
+              stroke="#F02D5A" stroke-width="2.2" stroke-linecap="round" opacity=".9"/>
+
+        <!-- Wordmark: R=blue, ela=white+black outline, y=pink -->
+        <text class="t2" x="32" y="50">
+          <tspan fill="#3D7EF5">R</tspan>
+          <tspan fill="white" stroke="#06090f" stroke-width="5" paint-order="stroke fill">ela</tspan>
+          <tspan fill="#F02D5A">y</tspan>
+        </text>
+
+      </g>
+    </svg>
+  </div>
+  <div class="chip-label" style="color:#8aa6c8">R blue · ela white + dark outline · y pink</div>
+</div>
+
+</body>
+</html>

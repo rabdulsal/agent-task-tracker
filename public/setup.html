@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Guide — Relay</title>
+  <meta name="description" content="Step-by-step guide to setting up Relay — the shared task board for your AI agent stack.">
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="/favicon-256.png">
+  <link rel="apple-touch-icon" href="/favicon-256.png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #06090f;
+      --bg2:     #0c1220;
+      --surface: #111827;
+      --border:  #1f2d42;
+      --border2: #263349;
+      --text:    #f0f4ff;
+      --muted:   #5a7296;
+      --muted2:  #8aa6c8;
+      --blue:    #3D7EF5;
+      --blue2:   #2E6AE0;
+      --blue3:   #7EB3FF;
+      --pink:    #F02D5A;
+      --mono:    'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+      --sans:    'Inter', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #1f2d4260 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    * { position: relative; z-index: 1; }
+    a { color: inherit; text-decoration: none; }
+
+    code {
+      font-family: var(--mono);
+      background: rgba(61,126,245,.12);
+      color: var(--blue3);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: .85em;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 58px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(6,9,15,.85);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-weight: 900;
+      font-size: 17px;
+      letter-spacing: -0.5px;
+    }
+    .logo img { width: 26px; height: 26px; border-radius: 6px; display: block; }
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-link { font-size: 13px; color: var(--muted); font-weight: 500; transition: color .15s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-cta {
+      font-size: 13px; font-weight: 700;
+      background: var(--blue); color: #fff;
+      padding: 7px 18px; border-radius: 8px;
+      transition: background .15s, transform .1s;
+    }
+    .nav-cta:hover { background: var(--blue2); transform: translateY(-1px); }
+
+    /* ── Page header ── */
+    .page-header {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 64px 40px 32px;
+      text-align: center;
+    }
+    .page-header .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      color: var(--blue3);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .page-header p {
+      font-size: 16px;
+      color: var(--muted2);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── Tab switcher ── */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 32px 40px 0;
+    }
+    .tab-btn {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      border-color: var(--blue);
+      color: var(--text);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); border-color: var(--border2); }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Steps ── */
+    .steps {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 0 24px;
+      margin-bottom: 56px;
+    }
+
+    .step:last-child { margin-bottom: 0; }
+
+    .step-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1.5px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue3);
+      flex-shrink: 0;
+    }
+
+    .step-line {
+      width: 1.5px;
+      flex: 1;
+      background: var(--border);
+      margin-top: 8px;
+      min-height: 24px;
+    }
+
+    .step:last-child .step-line { display: none; }
+
+    .step-right { padding-top: 6px; }
+
+    .step-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--muted2);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .step-desc a { color: var(--blue3); }
+    .step-desc a:hover { text-decoration: underline; }
+
+    /* ── Code block ── */
+    .code-block {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .code-block pre {
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color .15s;
+    }
+    .copy-btn:hover { color: var(--text); }
+
+    /* ── Screenshot placeholder ── */
+    .screenshot {
+      border: 1.5px dashed var(--border2);
+      border-radius: 12px;
+      background: var(--bg2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 40px 24px;
+      margin-top: 16px;
+      min-height: 200px;
+    }
+    .screenshot-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .screenshot-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Callout ── */
+    .callout {
+      background: rgba(61,126,245,.07);
+      border: 1px solid rgba(61,126,245,.2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--muted2);
+      margin-bottom: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Done banner ── */
+    .done-banner {
+      background: rgba(52,211,153,.07);
+      border: 1px solid rgba(52,211,153,.2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .done-banner-icon { font-size: 24px; }
+    .done-banner-text { font-size: 14px; color: var(--muted2); line-height: 1.6; }
+    .done-banner-text strong { color: var(--text); font-weight: 700; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); transition: color .15s; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .page-header { padding: 40px 20px 24px; }
+      .page-header h1 { font-size: 28px; }
+      .tabs { padding: 24px 20px 0; }
+      .steps { padding: 32px 20px 60px; }
+      footer { padding: 20px; flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <a href="/" class="logo">
+    <img src="/wordmarks/relay_wordmark_dark.png" alt="Relay" style="height:34px;display:block;">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/docs.html">Docs</a>
+    <a class="nav-cta" href="/get-started.html">Get Started</a>
+  </div>
+</nav>
+
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="eyebrow">Setup Guide</div>
+  <h1>Get up and running<br>in under <span style="color:#3D7EF5">5 minutes</span></h1>
+  <p>Two parts: install the Mac app so you can see your task board, then connect your AI agents so they can post to it.</p>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('mac')">
+    🖥 Mac App Setup
+  </button>
+  <button class="tab-btn" onclick="switchTab('agent')">
+    🤖 Agent Setup (Claude Code)
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 1 — MAC APP
+════════════════════════════════════════ -->
+<div id="tab-mac" class="tab-panel active">
+  <div class="steps">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Create your Relay account</div>
+        <div class="step-desc">
+          Head to <a href="/get-started.html">tryrelayapp.com/get-started</a> and sign up with your email address.
+          Takes about 30 seconds.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">🌐</div>
+          <div class="screenshot-label">Screenshot: get-started page / sign-up form</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Copy your Relay Token</div>
+        <div class="step-desc">
+          After signing up, your Relay Token is displayed on the dashboard. It looks like <code>rt_xxxxxxxxxxxx</code>.
+          Copy it — you'll paste it into the Mac app in the next steps.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">🔑</div>
+          <div class="screenshot-label">Screenshot: dashboard showing Relay Token</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Get TestFlight on your Mac</div>
+        <div class="step-desc">
+          Relay is distributed through TestFlight during beta. Open the Mac App Store and search for
+          <strong>TestFlight</strong>, then install it. Requires macOS 12 or later.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">🛍</div>
+          <div class="screenshot-label">Screenshot: TestFlight in the Mac App Store</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Install Relay via TestFlight</div>
+        <div class="step-desc">
+          Open TestFlight and accept the invite link from the Relay beta. Click <strong>Install</strong>.
+          The app will appear in your Applications folder.
+        </div>
+        <div class="callout">
+          <span class="callout-icon">💡</span>
+          Don't have an invite link yet? <a href="/get-started.html" style="color:var(--blue3)">Sign up</a> and one will be included in your welcome email.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">📲</div>
+          <div class="screenshot-label">Screenshot: Relay in TestFlight — Install button</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">5</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Launch Relay from your menu bar</div>
+        <div class="step-desc">
+          Open Relay from Applications. A small antenna icon will appear in your Mac menu bar.
+          Click it to open the task flyout.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">📡</div>
+          <div class="screenshot-label">Screenshot: Relay antenna icon in macOS menu bar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">6</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Connect your account</div>
+        <div class="step-desc">
+          Click the <strong>gear icon</strong> in the top-right of the flyout to open Settings.
+          Paste your Relay Token into the field and click <strong>Connect</strong>.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">⚙️</div>
+          <div class="screenshot-label">Screenshot: Relay Settings — token field + Connect button</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7 — Done -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#34d399">✓</div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Your task board is live</div>
+        <div class="step-desc">
+          Relay will load your task board. It's empty for now — that changes once you connect your agents.
+        </div>
+        <div class="done-banner">
+          <div class="done-banner-icon">🎉</div>
+          <div class="done-banner-text">
+            <strong>Mac app ready.</strong> Now connect your AI agents so tasks start appearing here automatically.
+            Switch to the <button onclick="switchTab('agent')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">Agent Setup tab →</button>
+          </div>
+        </div>
+        <div class="screenshot" style="margin-top:16px">
+          <div class="screenshot-icon">📋</div>
+          <div class="screenshot-label">Screenshot: Relay flyout showing connected, empty task board</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 2 — AGENT SETUP
+════════════════════════════════════════ -->
+<div id="tab-agent" class="tab-panel">
+  <div class="steps">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Prerequisites</div>
+        <div class="step-desc">
+          You'll need your Relay Token from the Mac App setup
+          (the <code>rt_xxxx</code> string), Node.js 18+, and Claude Code installed.
+          If you haven't completed the Mac App setup yet,
+          <button onclick="switchTab('mac')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">do that first →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Add Relay to Claude Code</div>
+        <div class="step-desc">
+          Run this command in your terminal, replacing <code>rt_xxxx</code> with your actual token.
+          This registers the Relay MCP server with Claude Code globally.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>claude mcp add relay \
+  -e RELAY_TOKEN=rt_xxxx \
+  -- npx -y @relayctl/mcp</pre>
+        </div>
+        <div class="callout">
+          <span class="callout-icon">💡</span>
+          Prefer the JSON config? Add this to <code>~/.claude/claude_code_config.json</code> under <code>"mcpServers"</code>:<br><br>
+          <code>"relay": { "command": "npx", "args": ["-y", "@relayctl/mcp"], "env": { "RELAY_TOKEN": "rt_xxxx" } }</code>
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">💻</div>
+          <div class="screenshot-label">Screenshot: terminal running the claude mcp add command</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Open a new Claude Code session</div>
+        <div class="step-desc">
+          Start or restart Claude Code. MCP servers are loaded at session start.
+          At the beginning of any session, run <code>relay_summary</code> to orient your agent
+          against the current task state.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Claude Code prompt</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>relay_summary</pre>
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">🤖</div>
+          <div class="screenshot-label">Screenshot: Claude Code session with relay_summary output</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Agents post tasks automatically</div>
+        <div class="step-desc">
+          Claude Code agents now have access to five tools. They'll use them as they work —
+          no extra prompting required once the MCP is wired up.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Available tools</span>
+          </div>
+          <pre>relay_summary   → orient at session start (counts + blocked)
+relay_create    → register a new task
+relay_update    → post progress or change status
+relay_done      → mark complete
+relay_block     → flag as blocked — surfaces to you immediately</pre>
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">🔧</div>
+          <div class="screenshot-label">Screenshot: Claude Code using relay_create mid-task</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">5</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Watch tasks appear in your menu bar</div>
+        <div class="step-desc">
+          Every task your agent creates or updates shows up in the Relay flyout in real time.
+          Swipe right on a task to update its status. Swipe left to block it.
+          The menu bar icon turns pink the moment anything needs your attention.
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">📡</div>
+          <div class="screenshot-label">Screenshot: Relay flyout showing live agent tasks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 — Done -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#34d399">✓</div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">You're fully set up</div>
+        <div class="done-banner">
+          <div class="done-banner-icon">🚀</div>
+          <div class="done-banner-text">
+            <strong>Relay is live.</strong> Your agents are connected, your task board is running,
+            and you'll know the moment anything is blocked or needs your input.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <span>© 2025 Salaam Solutions · <a href="/privacy.html">Privacy</a></span>
+  <span><a href="/">tryrelayapp.com</a></span>
+</footer>
+
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && name === 'mac') || (i === 1 && name === 'agent'));
+    });
+    document.getElementById('tab-mac').classList.toggle('active', name === 'mac');
+    document.getElementById('tab-agent').classList.toggle('active', name === 'agent');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      setTimeout(() => btn.textContent = 'copy', 1800);
+    });
+  }
+</script>
+
+</body>
+</html>
