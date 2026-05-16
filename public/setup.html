@@ -131,6 +131,7 @@
     .tabs {
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 8px;
       padding: 32px 40px 0;
     }
@@ -138,13 +139,14 @@
       font-family: var(--mono);
       font-size: 13px;
       font-weight: 700;
-      padding: 10px 24px;
+      padding: 10px 20px;
       border-radius: 8px;
       border: 1px solid var(--border2);
       background: transparent;
       color: var(--muted);
       cursor: pointer;
       transition: all .15s;
+      white-space: nowrap;
     }
     .tab-btn.active {
       background: var(--surface);
@@ -365,23 +367,29 @@
 <div class="page-header">
   <div class="eyebrow">Setup Guide</div>
   <h1>Get up and running<br>in under <span style="color:#3D7EF5">5 minutes</span></h1>
-  <p>Two parts: install the Mac app so you can see your task board, then connect your AI agents so they can post to it.</p>
+  <p>Install the Mac app, then connect whichever agent you're running — Claude Code, Codex, or Gemini CLI.</p>
 </div>
 
 <!-- ── Tabs ── -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('mac')">
-    🖥 Mac App Setup
+  <button class="tab-btn active" data-tab="mac" onclick="switchTab('mac')">
+    🖥 Mac App
   </button>
-  <button class="tab-btn" onclick="switchTab('agent')">
-    🤖 Agent Setup (Claude Code)
+  <button class="tab-btn" data-tab="claude" onclick="switchTab('claude')">
+    🤖 Claude Code
+  </button>
+  <button class="tab-btn" data-tab="codex" onclick="switchTab('codex')">
+    ⚡ Codex CLI
+  </button>
+  <button class="tab-btn" data-tab="gemini" onclick="switchTab('gemini')">
+    🔷 Gemini CLI
   </button>
 </div>
 
 <!-- ══════════════════════════════════════
      TAB 1 — MAC APP
 ════════════════════════════════════════ -->
-<div id="tab-mac" class="tab-panel active">
+<div id="tab-mac" class="tab-panel active" data-tab="mac">
   <div class="steps">
 
     <!-- Step 1 -->
@@ -516,7 +524,7 @@
           <div class="done-banner-icon">🎉</div>
           <div class="done-banner-text">
             <strong>Mac app ready.</strong> Now connect your AI agents so tasks start appearing here automatically.
-            Switch to the <button onclick="switchTab('agent')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">Agent Setup tab →</button>
+            Switch to the <button onclick="switchTab('claude')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">Agent Setup tab →</button>
           </div>
         </div>
         <div class="screenshot" style="margin-top:16px">
@@ -532,7 +540,7 @@
 <!-- ══════════════════════════════════════
      TAB 2 — AGENT SETUP
 ════════════════════════════════════════ -->
-<div id="tab-agent" class="tab-panel">
+<div id="tab-claude" class="tab-panel" data-tab="claude">
   <div class="steps">
 
     <!-- Step 1 -->
@@ -548,6 +556,7 @@
           (the <code>rt_xxxx</code> string), Node.js 18+, and Claude Code installed.
           If you haven't completed the Mac App setup yet,
           <button onclick="switchTab('mac')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">do that first →</button>
+
         </div>
       </div>
     </div>
@@ -681,6 +690,288 @@ relay_block     → flag as blocked — surfaces to you immediately</pre>
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     TAB 3 — CODEX CLI
+════════════════════════════════════════ -->
+<div id="tab-codex" class="tab-panel" data-tab="codex">
+  <div class="steps">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Prerequisites</div>
+        <div class="step-desc">
+          You'll need your Relay Token (<code>rt_xxxx</code>), Node.js 18+, and the
+          <a href="https://github.com/openai/codex" style="color:var(--blue3)" target="_blank">OpenAI Codex CLI</a> installed.
+          If you haven't set up the Mac app yet,
+          <button onclick="switchTab('mac')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">do that first →</button>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Install Codex CLI</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>npm install -g @openai/codex</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Add Relay to your Codex config</div>
+        <div class="step-desc">
+          Open (or create) <code>~/.codex/config.yaml</code> and add the Relay MCP server block below.
+          Replace <code>rt_xxxx</code> with your actual token.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>~/.codex/config.yaml</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>mcp_servers:
+  - name: relay
+    type: stdio
+    command: npx
+    args:
+      - -y
+      - "@relayctl/mcp"
+    env:
+      RELAY_TOKEN: rt_xxxx</pre>
+        </div>
+        <div class="callout">
+          <span class="callout-icon">💡</span>
+          If <code>~/.codex/</code> doesn't exist yet, run <code>codex</code> once to initialize it, then edit the config.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Start a Codex session and verify</div>
+        <div class="step-desc">
+          Launch Codex in your project directory. At the start of any session, ask it to
+          run <code>relay_summary</code> to confirm the MCP connection and see current task state.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>codex</pre>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>In the Codex session</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>Run relay_summary to show current task state.</pre>
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">⚡</div>
+          <div class="screenshot-label">Screenshot: Codex session showing relay_summary output</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Available Relay tools</div>
+        <div class="step-desc">
+          Codex will discover and use these tools automatically as it works through tasks.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Available tools</span>
+          </div>
+          <pre>relay_summary   → orient at session start (counts + blocked)
+relay_create    → register a new task
+relay_update    → post progress or change status
+relay_done      → mark complete
+relay_block     → flag as blocked — surfaces to you immediately</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 — Done -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#34d399">✓</div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Codex is connected</div>
+        <div class="done-banner">
+          <div class="done-banner-icon">🚀</div>
+          <div class="done-banner-text">
+            <strong>Relay + Codex is live.</strong> Tasks from your Codex sessions will appear in your Mac menu bar in real time.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 4 — GEMINI CLI
+════════════════════════════════════════ -->
+<div id="tab-gemini" class="tab-panel" data-tab="gemini">
+  <div class="steps">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Prerequisites</div>
+        <div class="step-desc">
+          You'll need your Relay Token (<code>rt_xxxx</code>), Node.js 18+, and the
+          <a href="https://github.com/google-gemini/gemini-cli" style="color:var(--blue3)" target="_blank">Gemini CLI</a> installed.
+          If you haven't set up the Mac app yet,
+          <button onclick="switchTab('mac')" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-size:14px;font-weight:600;padding:0">do that first →</button>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Install Gemini CLI</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>npm install -g @google/gemini-cli</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Add Relay to your Gemini settings</div>
+        <div class="step-desc">
+          Open (or create) <code>~/.gemini/settings.json</code> and add the <code>mcpServers</code> block.
+          Replace <code>rt_xxxx</code> with your actual Relay Token.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>~/.gemini/settings.json</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>{
+  "mcpServers": {
+    "relay": {
+      "command": "npx",
+      "args": ["-y", "@relayctl/mcp"],
+      "env": {
+        "RELAY_TOKEN": "rt_xxxx"
+      }
+    }
+  }
+}</pre>
+        </div>
+        <div class="callout">
+          <span class="callout-icon">💡</span>
+          If you already have other MCP servers in <code>settings.json</code>, just add the <code>"relay"</code> key inside your existing <code>mcpServers</code> object.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Start a Gemini session and verify</div>
+        <div class="step-desc">
+          Launch Gemini CLI in your project directory. MCP servers load at session start.
+          Ask it to run <code>relay_summary</code> to confirm the connection.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>gemini</pre>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>In the Gemini session</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre>Run relay_summary to show current task state.</pre>
+        </div>
+        <div class="screenshot">
+          <div class="screenshot-icon">🔷</div>
+          <div class="screenshot-label">Screenshot: Gemini CLI session showing relay_summary output</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Available Relay tools</div>
+        <div class="step-desc">
+          Gemini will discover and call these tools automatically throughout its work loop.
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span>Available tools</span>
+          </div>
+          <pre>relay_summary   → orient at session start (counts + blocked)
+relay_create    → register a new task
+relay_update    → post progress or change status
+relay_done      → mark complete
+relay_block     → flag as blocked — surfaces to you immediately</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 — Done -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#34d399">✓</div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">Gemini is connected</div>
+        <div class="done-banner">
+          <div class="done-banner-icon">🚀</div>
+          <div class="done-banner-text">
+            <strong>Relay + Gemini CLI is live.</strong> Tasks from your Gemini sessions will appear in your Mac menu bar in real time.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ── Footer ── -->
 <footer>
   <span>© 2025 Salaam Solutions · <a href="/privacy.html">Privacy</a></span>
@@ -689,11 +980,12 @@ relay_block     → flag as blocked — surfaces to you immediately</pre>
 
 <script>
   function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach((b, i) => {
-      b.classList.toggle('active', (i === 0 && name === 'mac') || (i === 1 && name === 'agent'));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === name);
     });
-    document.getElementById('tab-mac').classList.toggle('active', name === 'mac');
-    document.getElementById('tab-agent').classList.toggle('active', name === 'agent');
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('active', p.dataset.tab === name);
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
