@@ -54,18 +54,42 @@ try {
   console.log("[db] migrated: added user_id to tasks");
 } catch {}
 
+// Idempotent migration: context fields (Phase 1)
+const contextCols: [string, string][] = [
+  ["agent_platform", "TEXT"],
+  ["code_refs",      "TEXT"],
+  ["links",          "TEXT"],
+  ["git_branch",     "TEXT"],
+  ["git_commit",     "TEXT"],
+  ["git_repo",       "TEXT"],
+  ["evidence",       "TEXT"],
+];
+for (const [col, type] of contextCols) {
+  try {
+    db.exec(`ALTER TABLE tasks ADD COLUMN ${col} ${type}`);
+    console.log(`[db] migrated: added ${col} to tasks`);
+  } catch {}
+}
+
 export interface Task {
-  id:            string;
-  title:         string;
-  status:        "pending" | "in_progress" | "done" | "blocked";
-  priority:      "low" | "medium" | "high" | "urgent";
-  notes:         string | null;
-  action_needed: string | null;
-  agent_name:    string | null;
-  user_id:       string | null;
-  created_at:    string;
-  updated_at:    string;
-  completed_at:  string | null;
+  id:             string;
+  title:          string;
+  status:         "pending" | "in_progress" | "done" | "blocked";
+  priority:       "low" | "medium" | "high" | "urgent";
+  notes:          string | null;
+  action_needed:  string | null;
+  agent_name:     string | null;
+  agent_platform: string | null;
+  user_id:        string | null;
+  code_refs:      string | null; // JSON: Array<{ path: string; lines?: string; label?: string }>
+  links:          string | null; // JSON: Array<{ url: string; label: string }>
+  git_branch:     string | null;
+  git_commit:     string | null;
+  git_repo:       string | null;
+  evidence:       string | null;
+  created_at:     string;
+  updated_at:     string;
+  completed_at:   string | null;
 }
 
 export interface User {
@@ -106,21 +130,32 @@ export const queries = {
 
   insert: db.prepare<[Task], void>(
     `INSERT INTO tasks
-       (id,title,status,priority,notes,action_needed,agent_name,user_id,created_at,updated_at,completed_at)
+       (id,title,status,priority,notes,action_needed,agent_name,agent_platform,
+        user_id,code_refs,links,git_branch,git_commit,git_repo,evidence,
+        created_at,updated_at,completed_at)
      VALUES
-       (@id,@title,@status,@priority,@notes,@action_needed,@agent_name,@user_id,@created_at,@updated_at,@completed_at)`
+       (@id,@title,@status,@priority,@notes,@action_needed,@agent_name,@agent_platform,
+        @user_id,@code_refs,@links,@git_branch,@git_commit,@git_repo,@evidence,
+        @created_at,@updated_at,@completed_at)`
   ),
 
   update: db.prepare<[Partial<Task> & { id: string; userId: string | null }], void>(
     `UPDATE tasks SET
-       title         = COALESCE(@title,         title),
-       status        = COALESCE(@status,        status),
-       priority      = COALESCE(@priority,      priority),
-       notes         = COALESCE(@notes,         notes),
-       action_needed = COALESCE(@action_needed, action_needed),
-       agent_name    = COALESCE(@agent_name,    agent_name),
-       updated_at    = @updated_at,
-       completed_at  = @completed_at
+       title          = COALESCE(@title,          title),
+       status         = COALESCE(@status,         status),
+       priority       = COALESCE(@priority,       priority),
+       notes          = COALESCE(@notes,          notes),
+       action_needed  = COALESCE(@action_needed,  action_needed),
+       agent_name     = COALESCE(@agent_name,     agent_name),
+       agent_platform = COALESCE(@agent_platform, agent_platform),
+       code_refs      = COALESCE(@code_refs,      code_refs),
+       links          = COALESCE(@links,          links),
+       git_branch     = COALESCE(@git_branch,     git_branch),
+       git_commit     = COALESCE(@git_commit,     git_commit),
+       git_repo       = COALESCE(@git_repo,       git_repo),
+       evidence       = COALESCE(@evidence,       evidence),
+       updated_at     = @updated_at,
+       completed_at   = @completed_at
      WHERE id = @id AND ${SCOPE}`
   ),
 

@@ -53,7 +53,11 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       },
       action_needed: all
         .filter(t => t.action_needed && t.status !== "done")
-        .map(t => ({ id: t.id, title: t.title, action_needed: t.action_needed, priority: t.priority })),
+        .map(t => ({
+          id: t.id, title: t.title, action_needed: t.action_needed, priority: t.priority,
+          ...(t.code_refs ? { code_refs: JSON.parse(t.code_refs) } : {}),
+          ...(t.git_branch ? { git_branch: t.git_branch, git_commit: t.git_commit } : {}),
+        })),
     };
   });
 
@@ -61,15 +65,26 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.post<{
     Body: {
-      title:          string;
-      status?:        string;
-      priority?:      string;
-      notes?:         string;
-      action_needed?: string;
-      agent_name?:    string;
+      title:           string;
+      status?:         string;
+      priority?:       string;
+      notes?:          string;
+      action_needed?:  string;
+      agent_name?:     string;
+      agent_platform?: string;
+      code_refs?:      Array<{ path: string; lines?: string; label?: string }>;
+      links?:          Array<{ url: string; label: string }>;
+      git_branch?:     string;
+      git_commit?:     string;
+      git_repo?:       string;
+      evidence?:       string;
     };
   }>("/tasks", async (req, reply) => {
-    const { title, status = "pending", priority = "medium", notes, action_needed, agent_name } = req.body;
+    const {
+      title, status = "pending", priority = "medium",
+      notes, action_needed, agent_name, agent_platform,
+      code_refs, links, git_branch, git_commit, git_repo, evidence,
+    } = req.body;
 
     if (!title?.trim())
       throw app.httpErrors.badRequest("title is required");
@@ -79,17 +94,24 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       throw app.httpErrors.badRequest(`Invalid priority. Use: ${VALID_PRIORITIES.join(", ")}`);
 
     const task: Task = {
-      id:            randomUUID(),
-      title:         title.trim(),
-      status:        status as Task["status"],
-      priority:      priority as Task["priority"],
-      notes:         notes        ?? null,
-      action_needed: action_needed ?? null,
-      agent_name:    agent_name   ?? null,
-      user_id:       req.userId   ?? null,
-      created_at:    now(),
-      updated_at:    now(),
-      completed_at:  status === "done" ? now() : null,
+      id:             randomUUID(),
+      title:          title.trim(),
+      status:         status as Task["status"],
+      priority:       priority as Task["priority"],
+      notes:          notes           ?? null,
+      action_needed:  action_needed   ?? null,
+      agent_name:     agent_name      ?? null,
+      agent_platform: agent_platform  ?? null,
+      user_id:        req.userId      ?? null,
+      code_refs:      code_refs  ? JSON.stringify(code_refs)  : null,
+      links:          links      ? JSON.stringify(links)      : null,
+      git_branch:     git_branch ?? null,
+      git_commit:     git_commit ?? null,
+      git_repo:       git_repo   ?? null,
+      evidence:       evidence   ?? null,
+      created_at:     now(),
+      updated_at:     now(),
+      completed_at:   status === "done" ? now() : null,
     };
 
     queries.insert.run(task);
@@ -102,19 +124,29 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.patch<{
     Params: { id: string };
     Body: Partial<{
-      title:         string;
-      status:        string;
-      priority:      string;
-      notes:         string;
-      action_needed: string;
-      agent_name:    string;
+      title:           string;
+      status:          string;
+      priority:        string;
+      notes:           string;
+      action_needed:   string;
+      agent_name:      string;
+      agent_platform:  string;
+      code_refs:       Array<{ path: string; lines?: string; label?: string }>;
+      links:           Array<{ url: string; label: string }>;
+      git_branch:      string;
+      git_commit:      string;
+      git_repo:        string;
+      evidence:        string;
     }>;
   }>("/tasks/:id", async (req) => {
     const userId = req.userId ?? null;
     const existing = queries.getById.get({ id: req.params.id, userId });
     if (!existing) throw app.httpErrors.notFound("Task not found");
 
-    const { title, status, priority, notes, action_needed, agent_name } = req.body;
+    const {
+      title, status, priority, notes, action_needed, agent_name, agent_platform,
+      code_refs, links, git_branch, git_commit, git_repo, evidence,
+    } = req.body;
 
     if (status && !VALID_STATUSES.includes(status as any))
       throw app.httpErrors.badRequest(`Invalid status. Use: ${VALID_STATUSES.join(", ")}`);
@@ -122,20 +154,27 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       throw app.httpErrors.badRequest(`Invalid priority. Use: ${VALID_PRIORITIES.join(", ")}`);
 
     const becomingDone = status === "done" && existing.status !== "done";
-    const completed_at = becomingDone          ? now()
+    const completed_at = becomingDone               ? now()
                        : status && status !== "done" ? null
                        : existing.completed_at;
 
     queries.update.run({
-      id:            req.params.id,
-      title:         title?.trim()    ?? undefined,
-      status:        (status         ?? undefined) as Task["status"] | undefined,
-      priority:      (priority       ?? undefined) as Task["priority"] | undefined,
-      notes:         notes            ?? undefined,
-      action_needed: action_needed    ?? undefined,
-      agent_name:    agent_name       ?? undefined,
-      user_id:       userId,
-      updated_at:    now(),
+      id:             req.params.id,
+      title:          title?.trim()    ?? undefined,
+      status:         (status         ?? undefined) as Task["status"] | undefined,
+      priority:       (priority       ?? undefined) as Task["priority"] | undefined,
+      notes:          notes            ?? undefined,
+      action_needed:  action_needed    ?? undefined,
+      agent_name:     agent_name       ?? undefined,
+      agent_platform: agent_platform   ?? undefined,
+      code_refs:      code_refs  ? JSON.stringify(code_refs)  : undefined,
+      links:          links      ? JSON.stringify(links)      : undefined,
+      git_branch:     git_branch ?? undefined,
+      git_commit:     git_commit ?? undefined,
+      git_repo:       git_repo   ?? undefined,
+      evidence:       evidence   ?? undefined,
+      user_id:        userId,
+      updated_at:     now(),
       completed_at,
       userId,
     } as any);
