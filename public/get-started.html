@@ -346,6 +346,7 @@ function copyCmd() {
   btn.textContent = 'Copied!';
   btn.classList.add('copied');
   setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  window.posthog?.capture?.('copied_install_command', { source: 'get-started', target: 'mcp_command' });
 }
 function copyKey() {
   navigator.clipboard.writeText(document.getElementById('api-key-val').textContent);

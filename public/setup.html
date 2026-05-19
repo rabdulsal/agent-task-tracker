@@ -998,11 +998,15 @@ relay_block     → flag as blocked — surfaces to you immediately</pre>
   }
 
   function copyCode(btn) {
-    const pre = btn.closest('.code-block').querySelector('pre');
+    const block = btn.closest('.code-block');
+    const pre = block.querySelector('pre');
+    const label = block.querySelector('.code-block-header span')?.textContent?.trim() || 'unknown';
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab || 'unknown';
     navigator.clipboard.writeText(pre.innerText).then(() => {
       btn.textContent = 'copied!';
       setTimeout(() => btn.textContent = 'copy', 1800);
     });
+    window.posthog?.capture?.('copied_install_command', { source: 'setup', label, agent: activeTab });
   }
 </script>
 
